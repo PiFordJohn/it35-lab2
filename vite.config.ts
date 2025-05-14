@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     legacy()
   ],
-  base:"/TRA-Manolo-Fortich",
+  base:"/it35-final",
   test: {
     globals: true,
     environment: 'jsdom',
