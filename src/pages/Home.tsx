@@ -18,17 +18,19 @@ import {
   IonPopover
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { bookOutline, personCircle } from 'ionicons/icons';
+import { bookOutline,star, personCircle } from 'ionicons/icons';
 import { Route, Redirect } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 
 
 import IncidentDashboard from './home-tabs/IncidentDashboard';
+import UserIncidentReports from './home-tabs/UserIncidentReports';
 
 const Home: React.FC = () => {
   const tabs = [
     {name:'IncidentDashboard', tab:'IncidentDashboard', url: '/TRA-Manolo-Fortich/app/home/IncidentDashboard', icon: bookOutline},
+    {name:'UserIncidentReports', tab:'UserIncidentReports', url: '/TRA-Manolo-Fortich/app/home/UserIncidentReports', icon: star},
   ];
 
   const [user, setUser] = useState<any>(null);
@@ -153,6 +155,7 @@ const Home: React.FC = () => {
           <IonTabs>
             <IonRouterOutlet>
               <Route exact path="/TRA-Manolo-Fortich/app/home/IncidentDashboard" component={IncidentDashboard} />
+              <Route exact path="/TRA-Manolo-Fortich/app/home/UserIncidentReports" component={UserIncidentReports} />
               <Route exact path="/TRA-Manolo-Fortich/app/home">
                 <Redirect to="/TRA-Manolo-Fortich/app/home/IncidentDashboard" />
               </Route>
