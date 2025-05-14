@@ -1,6 +1,6 @@
-import { 
+import {
   IonButton,
-  IonContent, 
+  IonContent,
   IonPage,
   IonInput,
   useIonRouter,
@@ -60,7 +60,7 @@ const Login: React.FC = () => {
       });
 
       if (error) throw error;
-      
+
       setShowOtpModal(true);
       setShowToast(true);
       return true;
@@ -73,6 +73,20 @@ const Login: React.FC = () => {
     }
   };
 
+  const fetchUserRole = async (userEmail: string) => {
+    const { data, error } = await supabase
+      .from('attendance_tracker_users')
+      .select('role')
+      .eq('user_email', userEmail)
+      .single();
+
+    if (error || !data) {
+      throw new Error('Unable to retrieve user role');
+    }
+
+    return data.role;
+  };
+
   const verifyAndLogin = async () => {
     if (!otp || !password) {
       setAlertMessage('Please enter both OTP and password');
@@ -82,7 +96,6 @@ const Login: React.FC = () => {
 
     setIsVerifying(true);
     try {
-      // Verify OTP first
       const { error: otpError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
@@ -90,18 +103,21 @@ const Login: React.FC = () => {
       });
       if (otpError) throw otpError;
 
-      // Then login with password
-      const { error: loginError } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
-      });
+      const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
       if (loginError) throw loginError;
+
+      const role = await fetchUserRole(email);
+      localStorage.setItem('user_role', role); // Optional for frontend role checks
 
       setShowToast(true);
       setTimeout(() => {
-        navigation.push('/it35-final/app', 'forward', 'replace');
+        if (role === 'admin' || role === 'teacher') {
+          navigation.push('/it35-final/attendance-admin', 'forward', 'replace');
+        } else {
+          navigation.push('/it35-final/student-dashboard', 'forward', 'replace');
+        }
       }, 500);
-      
+
       setShowOtpModal(false);
     } catch (error: any) {
       setAlertMessage(error.message || 'Verification failed. Please try again.');
@@ -130,16 +146,12 @@ const Login: React.FC = () => {
           justifyContent: 'center',
           marginTop: '25%'
         }}>
-          <IonAvatar style={{
-            width: '150px',
-            height: '150px',
-            marginBottom: '20px'
-          }}>
+          <IonAvatar style={{ width: '150px', height: '150px', marginBottom: '20px' }}>
             <img src={Icon1} alt="User Avatar" />
           </IonAvatar>
-          
+
           <h1>USER LOGIN</h1>
-          
+
           <IonInput
             label="Email"
             labelPlacement="floating"
@@ -150,7 +162,7 @@ const Login: React.FC = () => {
             onIonChange={e => setEmail(e.detail.value!)}
             style={{ marginBottom: '10px' }}
           />
-          
+
           <IonInput
             fill="outline"
             type="password"
@@ -162,25 +174,24 @@ const Login: React.FC = () => {
           </IonInput>
         </div>
 
-        <IonButton 
-          onClick={handleLogin} 
-          expand="full" 
+        <IonButton
+          onClick={handleLogin}
+          expand="full"
           shape="round"
           disabled={isSendingOtp}
         >
           {isSendingOtp ? 'Sending OTP...' : 'Login'}
         </IonButton>
 
-        <IonButton 
-          routerLink="/it35-final/register" 
-          expand="full" 
-          fill="clear" 
+        <IonButton
+          routerLink="/it35-final/register"
+          expand="full"
+          fill="clear"
           shape="round"
         >
           Don't have an account? Register here
         </IonButton>
 
-        {/* OTP Verification Modal */}
         <IonModal isOpen={showOtpModal} onDidDismiss={() => setShowOtpModal(false)}>
           <IonContent className="ion-padding">
             <IonGrid>
@@ -191,7 +202,7 @@ const Login: React.FC = () => {
                       <h2>Two-Factor Verification</h2>
                       <p>We've sent a 6-digit code to {email}</p>
                     </IonLabel>
-                    
+
                     <IonInput
                       fill="outline"
                       type="text"
@@ -203,18 +214,18 @@ const Login: React.FC = () => {
                       onIonChange={e => setOtp(e.detail.value!)}
                       style={{ margin: '20px 0' }}
                     />
-                    
-                    <IonButton 
-                      expand="block" 
+
+                    <IonButton
+                      expand="block"
                       onClick={verifyAndLogin}
                       disabled={isVerifying}
                     >
                       {isVerifying ? 'Verifying...' : 'Verify & Login'}
                     </IonButton>
-                    
-                    <IonButton 
-                      expand="block" 
-                      fill="clear" 
+
+                    <IonButton
+                      expand="block"
+                      fill="clear"
                       onClick={() => setShowOtpModal(false)}
                     >
                       Cancel
@@ -226,12 +237,12 @@ const Login: React.FC = () => {
           </IonContent>
         </IonModal>
 
-        <AlertBox 
-          message={alertMessage} 
-          isOpen={showAlert} 
-          onClose={() => setShowAlert(false)} 
+        <AlertBox
+          message={alertMessage}
+          isOpen={showAlert}
+          onClose={() => setShowAlert(false)}
         />
-        
+
         <IonToast
           isOpen={showToast}
           onDidDismiss={() => setShowToast(false)}
