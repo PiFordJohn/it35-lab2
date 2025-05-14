@@ -232,23 +232,36 @@ const UserIncidentReports: React.FC = () => {
                   </IonRow>
 
                   {selectedIncident.image_url && (
-                    <IonRow>
-                      <IonCol>
-                        <IonText>
-                          <h3>Attached Image</h3>
-                        </IonText>
-                        <IonImg 
-                          src={selectedIncident.image_url} 
-                          style={{ 
-                            borderRadius: '8px',
-                            marginTop: '10px',
-                            maxHeight: '300px',
-                            objectFit: 'contain'
-                          }}
-                        />
-                      </IonCol>
-                    </IonRow>
-                  )}
+  <IonRow>
+    <IonCol>
+      <IonText color="medium">
+        <h3>Incident Photo</h3>
+      </IonText>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        margin: '10px 0',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '8px',
+        padding: '10px'
+      }}>
+        <IonImg 
+          src={`${selectedIncident.image_url}?t=${Date.now()}`} // Cache busting
+          style={{
+            maxWidth: '100%',
+            maxHeight: '300px',
+            objectFit: 'contain',
+            border: '1px solid #eee'
+          }}
+          onIonError={(e) => {
+            console.error('Image load error:', e);
+            // Optional: Set state to show error message
+          }}
+        />
+      </div>
+    </IonCol>
+  </IonRow>
+)}
                 </IonGrid>
               </IonContent>
             </>

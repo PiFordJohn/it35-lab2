@@ -51,37 +51,33 @@ const IncidentReport: React.FC = () => {
 
   const uploadImage = async (imageData: string) => {
     try {
-      // Get current user session
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) throw new Error('Not authenticated');
-
-      // Convert data URL to blob
+  
       const response = await fetch(imageData);
       const blob = await response.blob();
-      
-      // Generate unique filename
       const fileExt = imageData.split(';')[0].split('/')[1] || 'png';
       const fileName = `incidents/${user.id}/${Date.now()}.${fileExt}`;
       
-      // Upload to storage
-      const { data, error: uploadError } = await supabase.storage
+      // Upload with cache control
+      const { error: uploadError } = await supabase.storage
         .from('incident-images')
-        .upload(fileName, blob);
-
+        .upload(fileName, blob, {
+          cacheControl: '3600',
+          upsert: false
+        });
+  
       if (uploadError) throw uploadError;
-
-      // Get public URL
+  
+      // Get the public URL - this is the correct way in Supabase v2
       const { data: { publicUrl } } = supabase.storage
         .from('incident-images')
         .getPublicUrl(fileName);
-
-      if (!publicUrl) throw new Error('Could not get public URL');
-      
+  
       return publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
-      throw new Error('Failed to upload image');
+      throw error;
     }
   };
 

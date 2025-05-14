@@ -15,14 +15,14 @@ import {
   IonToolbar,
   IonAvatar,
   IonItem,
-  IonPopover
+  IonPopover,
+  IonImg
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { bookOutline,star, personCircle } from 'ionicons/icons';
+import { bookOutline, star, personCircle } from 'ionicons/icons';
 import { Route, Redirect } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
-
 
 import IncidentDashboard from './home-tabs/IncidentDashboard';
 import UserIncidentReports from './home-tabs/UserIncidentReports';
@@ -38,20 +38,24 @@ const Home: React.FC = () => {
   const [popoverEvent, setPopoverEvent] = useState<any>(null);
 
   useEffect(() => {
-    // Get the current user session
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Error getting user:', error);
+        return;
+      }
+      
       if (user) {
         setUser(user);
         
-        // Optionally fetch additional user data from your profiles table
-        const { data: profile, error } = await supabase
+        // Fetch additional profile data
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
           
-        if (!error && profile) {
+        if (!profileError && profile) {
           setUser((prev: any) => ({ ...prev, profile }));
         }
       }
@@ -59,8 +63,7 @@ const Home: React.FC = () => {
 
     fetchUser();
     
-    // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
       } else {
@@ -68,19 +71,29 @@ const Home: React.FC = () => {
       }
     });
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Sign out error:', error);
     setShowProfilePopover(false);
   };
 
   const openProfilePopover = (e: any) => {
     setPopoverEvent(e);
     setShowProfilePopover(true);
+  };
+
+  // Helper function to get user avatar URL
+  const getAvatarUrl = () => {
+    if (user?.profile?.avatar_url) {
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(user.profile.avatar_url);
+      return publicUrl;
+    }
+    return user?.user_metadata?.avatar_url;
   };
 
   return (
@@ -94,9 +107,13 @@ const Home: React.FC = () => {
           <IonButtons slot="end">
             {user ? (
               <IonButton onClick={openProfilePopover}>
-                {user.user_metadata?.avatar_url ? (
+                {getAvatarUrl() ? (
                   <IonAvatar slot="icon-only" style={{ width: '32px', height: '32px' }}>
-                    <img src={user.user_metadata.avatar_url} alt="Profile" />
+                    <IonImg 
+                      src={getAvatarUrl()} 
+                      alt="Profile"
+                      onIonError={(e) => console.error('Avatar load error:', e)}
+                    />
                   </IonAvatar>
                 ) : (
                   <IonIcon icon={personCircle} slot="icon-only" size="large" />
@@ -117,16 +134,20 @@ const Home: React.FC = () => {
         <IonContent className="ion-padding">
           {user && (
             <div style={{ textAlign: 'center' }}>
-              {user.user_metadata?.avatar_url ? (
+              {getAvatarUrl() ? (
                 <IonAvatar style={{ width: '80px', height: '80px', margin: '0 auto' }}>
-                  <img src={user.user_metadata.avatar_url} alt="Profile" />
+                  <IonImg 
+                    src={getAvatarUrl()} 
+                    alt="Profile"
+                    onIonError={(e) => console.error('Avatar load error:', e)}
+                  />
                 </IonAvatar>
               ) : (
                 <IonIcon icon={personCircle} size="large" style={{ fontSize: '80px' }} />
               )}
               
               <h2>{user.email}</h2>
-              <p>{user.user_metadata?.full_name || 'User'}</p>
+              <p>{user.user_metadata?.full_name || user.profile?.full_name || 'User'}</p>
               
               <IonButton 
                expand="block" 
