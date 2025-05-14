@@ -18,20 +18,17 @@ import {
   IonPopover
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { bookOutline, search, star, personCircle } from 'ionicons/icons';
+import { bookOutline, personCircle } from 'ionicons/icons';
 import { Route, Redirect } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 
-import Inventory from './home-tabs/Inventory';
-import Product from './home-tabs/Product';
-import Search from './home-tabs/Search';
+
+import IncidentDashboard from './home-tabs/IncidentDashboard';
 
 const Home: React.FC = () => {
   const tabs = [
-    {name:'Product', tab:'product', url: '/TRA-Manolo-Fortich/app/home/product', icon: bookOutline},
-    {name:'Search', tab:'search', url: '/TRA-Manolo-Fortich/app/home/search', icon: search},
-    {name:'Inventory', tab:'inventory', url: '/TRA-Manolo-Fortich/app/home/inventory', icon: star},
+    {name:'IncidentDashboard', tab:'IncidentDashboard', url: '/TRA-Manolo-Fortich/app/home/IncidentDashboard', icon: bookOutline},
   ];
 
   const [user, setUser] = useState<any>(null);
@@ -155,12 +152,9 @@ const Home: React.FC = () => {
         <IonReactRouter>
           <IonTabs>
             <IonRouterOutlet>
-              <Route exact path="/TRA-Manolo-Fortich/app/home/product" component={Product} />
-              <Route exact path="/TRA-Manolo-Fortich/app/home/search" component={Search} />
-              <Route exact path="/TRA-Manolo-Fortich/app/home/inventory" component={Inventory} />
-              <Route exact path="/TRA-Manolo-Fortich/app/home/inventory/:id" component={Inventory} />
+              <Route exact path="/TRA-Manolo-Fortich/app/home/IncidentDashboard" component={IncidentDashboard} />
               <Route exact path="/TRA-Manolo-Fortich/app/home">
-                <Redirect to="/TRA-Manolo-Fortich/app/home/product" />
+                <Redirect to="/TRA-Manolo-Fortich/app/home/IncidentDashboard" />
               </Route>
             </IonRouterOutlet>
 
