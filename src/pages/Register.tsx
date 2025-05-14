@@ -75,7 +75,7 @@ const Register: React.FC = () => {
             const hashedPassword = await bcrypt.hash(password, salt);
     
             // Insert user data into 'users' table
-            const { error: insertError } = await supabase.from("users").insert([
+            const { error: insertError } = await supabase.from("attendance_tracker_users").insert([
                 {
                     username,
                     user_email: email,
